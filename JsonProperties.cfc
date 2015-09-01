@@ -82,18 +82,16 @@
 		<cfscript>
 			var loc = {};
 
-			if (this.isInstance()) {
-				for (loc.item in variables.wheels.class.jsonProperties) {
-					if (!StructKeyExists(this, loc.item)) {
-						this[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
-					}
+			for (loc.item in variables.wheels.class.jsonProperties) {
+				if (!StructKeyExists(this, loc.item)) {
+					this[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
+				}
 
-					if (IsSimpleValue(this[loc.item]) && Len(this[loc.item]) && IsJSON(this[loc.item])) {
-						this[loc.item] = DeserializeJSON(this[loc.item]);
-					}
-					else {
-						this[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
-					}
+				if (IsSimpleValue(this[loc.item]) && Len(this[loc.item]) && IsJSON(this[loc.item])) {
+					this[loc.item] = DeserializeJSON(this[loc.item]);
+				}
+				else {
+					this[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
 				}
 			}
 		</cfscript>
