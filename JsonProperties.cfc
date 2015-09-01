@@ -18,7 +18,7 @@
 			variables.wheels.class.jsonProperties[arguments.property] = arguments.type;
 
 			if (arguments.registerCallbacks) {
-				afterFind(method="$deserializeJSONProperties");
+				afterFind(method="$deserializeJSONPropertiesAfterFind");
 				afterSave(method="$deserializeJSONProperties");
 				beforeValidation(method="$serializeJSONProperties");
 				beforeDelete(method="$serializeJSONProperties");
@@ -82,6 +82,26 @@
 			}
 		</cfscript>
 		<cfreturn true>
+	</cffunction>
+
+	<cffunction name="$deserializeJSONPropertiesAfterFind" returntype="struct" output="false">
+		<cfscript>
+			var loc = {};
+
+			for (loc.item in variables.wheels.class.jsonProperties) {
+				if (!StructKeyExists(arguments, loc.item)) {
+					arguments[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
+				}
+
+				if (IsSimpleValue(arguments[loc.item]) && Len(arguments[loc.item]) && IsJSON(arguments[loc.item])) {
+					arguments[loc.item] = DeserializeJSON(arguments[loc.item]);
+				}
+				else {
+					arguments[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
+				}
+			}
+		</cfscript>
+		<cfreturn arguments>
 	</cffunction>
 
 	<cffunction name="$setDefaultObject" output="false">
