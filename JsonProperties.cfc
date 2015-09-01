@@ -11,7 +11,7 @@
 		<cfscript>
 			var loc = {};
 			
-			if (!StructKeyExists(variables.wheels.class, "jsonProperties")) {
+			if (!$hasJsonProperties()) {
 				variables.wheels.class.jsonProperties = {};
 			}
 
@@ -27,22 +27,38 @@
 	</cffunction>
 
 	<cffunction name="hasChanged" returntype="boolean" output="false">
-		<cfargument name="property" type="string" required="false" default="">
 		<cfscript>
-			var returnValue = false;
-			var coreHasChanged = core.hasChanged;
+			var loc = {
+				returnValue=false,
+				coreHasChanged=core.hasChanged,
+				wasSerialized=false
+			};
 
-			if (StructKeyExists(variables.wheels.class, "jsonProperties")) {
-				$serializeJSONProperties();
+			if ($hasJsonProperties()) {
+				// Track if property was already serialized.
+				for (loc.key in ListToArray(StructKeyList(variables.wheels.class.jsonProperties))) {
+					loc.property = this[loc.key];
+
+					if (IsSimpleValue(loc.property) && IsJSON(loc.property)) {
+						loc.wasSerialized = true;
+						break;
+					}
+				}
+
+				// No need to serialize again if we're already there.
+				if (!loc.wasSerialized) {
+					$serializeJSONProperties();
+				}
 			}
 
-			returnValue = coreHasChanged(argumentCollection=arguments);
+			loc.returnValue = loc.coreHasChanged(argumentCollection=arguments);
 
-			if (StructKeyExists(variables.wheels.class, "jsonProperties") && !$isCallingFromCrud()) {
+			// If properties weren't already serialized, put them back as they were.
+			if ($hasJsonProperties() && !loc.wasSerialized) {
 				$deserializeJSONProperties();
 			}
 		</cfscript>
-		<cfreturn returnValue>
+		<cfreturn loc.returnValue>
 	</cffunction>
 
 	<cffunction name="$serializeJSONProperties" returntype="boolean" output="false">
@@ -134,6 +150,10 @@
 			}
 		</cfscript>
 		<cfreturn loc.returnValue>
+	</cffunction>
+
+	<cffunction name="$hasJsonProperties" returntype="boolean" output="false">
+		<cfreturn StructKeyExists(variables.wheels.class, "jsonProperties")>
 	</cffunction>
 
 	<cffunction name="$convertToString" returntype="string" access="public" output="false">
