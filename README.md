@@ -10,6 +10,9 @@ The JSON properties plugin has a single initialization method that you must call
 -  jsonProperty
     -  __`property`__ - the model property the serialize and deserialize when interacting with the database.
     -  __`type`__ - possible values include `array` or `struct`.
+    -  __`registerCallbacks`__ - (defaults to `true`) Whether or not this plugin should automatically add the
+      `$deserializeJSONProperties` and `$serializeProperties` callbacks. Set this to false if you want to invoke them or
+      register them yourself.
 
 Once you have initialized your model, there is no extra work required to start using the functionality of this plugin.
 
@@ -17,7 +20,7 @@ Once you have initialized your model, there is no extra work required to start u
 
 Simply add structure data to your JSON property. That's it!
 
-## Interal workings
+## Interal Workings
 
 The JSON proerties plugin works by adding callbacks to the initialized model to transparently serialize/deserialize complex
 data types into strings that can be stored in a database.

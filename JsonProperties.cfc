@@ -1,25 +1,29 @@
-<cfcomponent output="false" mixin="model">
+<cfcomponent mixin="model" output="false">
 
-	<cffunction name="init" output="false" access="public" returntype="any">
-		<cfset this.version = "1.0,1.1" />
-		<cfreturn this />
+	<cffunction name="init" output="false">
+		<cfset this.version = "1.0,1.1,1.4.0,1.4.1,1.4.2">
+		<cfreturn this>
 	</cffunction>
 	
 	<cffunction name="jsonProperty" output="false" access="public" returntype="void">
 		<cfargument name="property" type="string" required="true" />
 		<cfargument name="type" type="string" required="false" default="array" hint="The JSON type may be set to `array` or `struct`. The default is `array`. All other values will be ignored." />
+		<cfargument name="registerCallbacks" type="boolean" required="false" default="true" hint="Whether or not this plugin should automatically add the `$deserializeJSONProperties` and `$serializeProperties` callbacks. Set this to false if you want to invoke them or register them yourself.">
 		<cfscript>
 			var loc = {};
 			
-			if (!StructKeyExists(variables.wheels.class, "jsonProperties"))
+			if (!StructKeyExists(variables.wheels.class, "jsonProperties")) {
 				variables.wheels.class.jsonProperties = {};
-				
+			}
+
 			variables.wheels.class.jsonProperties[arguments.property] = arguments.type;
-			
-			afterFind(method="$deserializeJSONProperties");
-			afterSave(method="$deserializeJSONProperties");
-			beforeValidation(method="$serializeJSONProperties");
-			beforeDelete(method="$serializeJSONProperties");
+
+			if (arguments.registerCallbacks) {
+				afterFind(method="$deserializeJSONProperties");
+				afterSave(method="$deserializeJSONProperties");
+				beforeValidation(method="$serializeJSONProperties");
+				beforeDelete(method="$serializeJSONProperties");
+			}
 		</cfscript>
 	</cffunction>
 	
