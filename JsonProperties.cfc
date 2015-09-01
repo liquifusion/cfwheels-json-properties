@@ -1,11 +1,10 @@
 <cfcomponent mixin="model" output="false">
-
 	<cffunction name="init" output="false">
 		<cfset this.version = "1.0,1.1,1.4.0,1.4.1,1.4.2">
 		<cfreturn this>
 	</cffunction>
-	
-	<cffunction name="jsonProperty" output="false" access="public" returntype="void">
+
+	<cffunction name="jsonProperty" output="false">
 		<cfargument name="property" type="string" required="true" />
 		<cfargument name="type" type="string" required="false" default="array" hint="The JSON type may be set to `array` or `struct`. The default is `array`. All other values will be ignored." />
 		<cfargument name="registerCallbacks" type="boolean" required="false" default="true" hint="Whether or not this plugin should automatically add the `$deserializeJSONProperties` and `$serializeProperties` callbacks. Set this to false if you want to invoke them or register them yourself.">
@@ -26,97 +25,119 @@
 			}
 		</cfscript>
 	</cffunction>
-	
-	<cffunction name="hasChanged" output="false" access="public" returntype="boolean">
+
+	<cffunction name="hasChanged" returntype="boolean" output="false">
 		<cfargument name="property" type="string" required="false" default="">
 		<cfscript>
 			var returnValue = false;
 			var coreHasChanged = core.hasChanged;
-			if (StructKeyExists(variables.wheels.class, "jsonProperties"))
+
+			if (StructKeyExists(variables.wheels.class, "jsonProperties")) {
 				$serializeJSONProperties();
+			}
+
 			returnValue = coreHasChanged(argumentCollection=arguments);
-			if (StructKeyExists(variables.wheels.class, "jsonProperties") && !$callingFromCrud())
+
+			if (StructKeyExists(variables.wheels.class, "jsonProperties") && !$isCallingFromCrud()) {
 				$deserializeJSONProperties();
-		</cfscript>
-		<cfreturn returnValue />
-	</cffunction>
-	
-	<cffunction name="$serializeJSONProperties" output="false" access="public" returntype="boolean">
-		<cfscript>
-			var loc = {};
-			for (loc.item in variables.wheels.class.jsonProperties)
-			{
-				if (!StructKeyExists(this, loc.item))
-					this[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
-				if (!IsSimpleValue(this[loc.item]))
-					this[loc.item] = SerializeJSON(this[loc.item]);
 			}
 		</cfscript>
-		<cfreturn true />
+		<cfreturn returnValue>
 	</cffunction>
-	
-	<cffunction name="$deserializeJSONProperties" output="false" access="public" returntype="boolean">
+
+	<cffunction name="$serializeJSONProperties" returntype="boolean" output="false">
 		<cfscript>
 			var loc = {};
-			if (IsInstance())
-			{
-				for (loc.item in variables.wheels.class.jsonProperties)
-				{
-					if (!StructKeyExists(this, loc.item))
-						this[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
-					if (IsSimpleValue(this[loc.item]) && Len(this[loc.item]) && IsJSON(this[loc.item]))
-						this[loc.item] = DeserializeJSON(this[loc.item]);
-					else
-						this[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
+
+			for (loc.item in variables.wheels.class.jsonProperties) {
+				if (!StructKeyExists(this, loc.item)) {
+					this[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
+				}
+
+				if (!IsSimpleValue(this[loc.item])) {
+					this[loc.item] = SerializeJSON(this[loc.item]);
 				}
 			}
 		</cfscript>
-		<cfreturn true />
+		<cfreturn true>
 	</cffunction>
-	
-	<cffunction name="$setDefaultObject" output="false" access="public" returntype="any">
-		<cfargument name="type" type="string" required="true" />
-		<cfscript>
-			var returnObject = [];
-			if (arguments.type == "struct")
-				returnObject = {};
-		</cfscript>
-		<cfreturn returnObject />
-	</cffunction>	
-	
-	<cffunction name="$callingFromCrud" output="false" access="public" returntype="boolean">
+
+	<cffunction name="$deserializeJSONProperties" returntype="boolean" output="false">
 		<cfscript>
 			var loc = {};
+
+			if (this.isInstance()) {
+				for (loc.item in variables.wheels.class.jsonProperties) {
+					if (!StructKeyExists(this, loc.item)) {
+						this[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
+					}
+
+					if (IsSimpleValue(this[loc.item]) && Len(this[loc.item]) && IsJSON(this[loc.item])) {
+						this[loc.item] = DeserializeJSON(this[loc.item]);
+					}
+					else {
+						this[loc.item] = $setDefaultObject(type=variables.wheels.class.jsonProperties[loc.item]);
+					}
+				}
+			}
+		</cfscript>
+		<cfreturn true>
+	</cffunction>
+
+	<cffunction name="$setDefaultObject" output="false">
+		<cfargument name="type" type="string" required="true">
+		<cfscript>
+			var returnObject = [];
+
+			if (arguments.type == "struct") {
+				returnObject = {};
+			}
+		</cfscript>
+		<cfreturn returnObject>
+	</cffunction>	
+
+	<cffunction name="$isCallingFromCrud" returntype="boolean" output="false">
+		<cfscript>
+			var loc = {};
+
 			loc.returnValue = false;
 			loc.stackTrace = CreateObject("java", "java.lang.Throwable").getStackTrace();
-			
+
 			loc.iEnd = ArrayLen(loc.stackTrace);
-			for (loc.i = 1; loc.i lte loc.iEnd; loc.i++)
-			{
+			for (loc.i = 1; loc.i lte loc.iEnd; loc.i++) {
 				loc.fileName = loc.stackTrace[loc.i].getFileName();
-				if (StructKeyExists(loc, "fileName") && !FindNoCase(".java", loc.fileName) && !FindNoCase("<generated>", loc.fileName) && FindNoCase("crud.cfm", loc.fileName))
-				{
+
+				if (StructKeyExists(loc, "fileName") && !FindNoCase(".java", loc.fileName) && !FindNoCase("<generated>", loc.fileName) && FindNoCase("crud.cfm", loc.fileName)) {
 					loc.returnValue = true;
 					break;
 				}
 			}
 		</cfscript>
-		<cfreturn loc.returnValue />
+		<cfreturn loc.returnValue>
 	</cffunction>
-	
+
 	<cffunction name="$convertToString" returntype="string" access="public" output="false">
 		<cfargument name="value" type="Any" required="true">
 		<cfscript>
-			if (IsBinary(arguments.value))
+			if (IsBinary(arguments.value)) {
 				return ToString(arguments.value);
-			else if (IsDate(arguments.value))
-				return CreateDateTime(year(arguments.value), month(arguments.value), day(arguments.value), hour(arguments.value), minute(arguments.value), second(arguments.value));
-			else if (IsArray(arguments.value) || IsStruct(arguments.value))
+			}
+			else if (IsDate(arguments.value)) {
+				return CreateDateTime(
+					Year(arguments.value),
+					Month(arguments.value),
+					Day(arguments.value),
+					Hour(arguments.value),
+					Minute(arguments.value),
+					Second(arguments.value)
+				);
+			}
+			else if (IsArray(arguments.value) || IsStruct(arguments.value)) {
 				return SerializeJSON(arguments.value);
+			}
+			else {
+				return arguments.value;
+			}
 		</cfscript>
-		<cfreturn arguments.value>
-	</cffunction>	
-
+	</cffunction>
 </cfcomponent>
-
-
