@@ -57,8 +57,6 @@
 			} else {
 				loc.returnValue = loc.coreHasChanged(argumentCollection=arguments);
 			}
-			
-			loc.returnValue = loc.coreHasChanged(argumentCollection=arguments);
 
 			// If properties weren't already serialized, put them back as they were.
 			if ($hasJsonProperties() && !loc.wasSerialized) {
