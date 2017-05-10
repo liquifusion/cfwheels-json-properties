@@ -51,7 +51,12 @@
 				}
 			}
 
-			loc.returnValue = loc.coreHasChanged(argumentCollection=arguments);
+			// Using the referenced hasChanged function does not work on CFWheels 2.0 and above.
+			if (Left(get("version"), 1) >= 2) {
+				loc.returnValue = core.hasChanged(argumentCollection=arguments);
+			} else {
+				loc.returnValue = loc.coreHasChanged(argumentCollection=arguments);
+			}
 
 			// If properties weren't already serialized, put them back as they were.
 			if ($hasJsonProperties() && !loc.wasSerialized) {
